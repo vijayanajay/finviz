@@ -1,8 +1,3 @@
-### Updated Product Requirements Document (with Placeholders for Later Detail)
-
-Here is the PRD incorporating these recommendations and clearly marking areas needing further definition. Changes based on the investor perspective are noted.
-
-```markdown
 # Product Requirements Document: Visual Market Pulse Dashboard (Frontend) - v1.2
 
 **Version:** 1.2
@@ -360,5 +355,5 @@ Mobile app consideration
 | Dependency | D7 | Specification for Disclaimer Placement (**NFR-07**). **[Placement TBD]** | L | - | Decide placement (e.g., footer). | PM / UX |
 | Dependency | D8 | Definition of Tie-Breaking Logic for Top G/L (**FR-7.2, FR-9.1, FR-9.2**). **[Logic TBD]** | L | - | Define how ties are handled. | PM / BE Lead |
 
-```
+
 
