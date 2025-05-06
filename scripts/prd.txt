@@ -1,0 +1,15 @@
+# Project: Finviz
+
+## Description
+A financial visualization tool for analyzing stock data.
+
+## Requirements
+- Set up basic project structure.
+- Integrate data fetching from APIs.
+- Create visualizations using charts.
+- Ensure user authentication.
+
+## Tech Stack
+- Frontend: React
+- Backend: Node.js
+- Database: PostgreSQL

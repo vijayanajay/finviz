@@ -34,3 +34,5 @@ tasks/
 /.cursor
 /.windsurfrules
 /.taskmasterconfig
+/__pycache__/*.pyc
+/scripts/task-complexity-report.json
