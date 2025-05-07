@@ -1,359 +1,430 @@
-# Product Requirements Document: Visual Market Pulse Dashboard (Frontend) - v1.2
+# Product Requirements Document: Visual Market Pulse Dashboard (Frontend) - v1.5
 
-**Version:** 1.2
-**Date:** 2025-05-05
-**Status:** Updated Draft (Investor Perspective Review)
+**Version:** 1.5
+**Date:** 2025-05-08
+**Status:** Updated Draft
 
 ## 1. Introduction
 
-This document outlines the frontend requirements for the Visual Market Pulse Dashboard, a web application designed to provide users (particularly those seeking a quick, long-term perspective) with an intuitive, visualization-driven overview of the Indian stock market, initially focusing on the Nifty 50 and Nifty Next 50 indices. The core philosophy emphasizes minimal text, direct interaction with visual elements, and rapid comprehension of market state and trends. Data is sourced via backend APIs, which in turn use Yahoo Finance (`yfinance`) exclusively for **daily (1D) or greater** historical technical data for this version. This PRD focuses exclusively on the client-side/frontend components and interactions.
+This document outlines the frontend requirements for the Visual Market Pulse Dashboard, a web application designed to provide users (particularly those seeking a quick, long-term perspective) with an intuitive, visualization-driven overview of the Indian stock market. For the MVP, this includes the Nifty 50 index and key market sectors. The core philosophy emphasizes minimal text, direct interaction with visual elements, and rapid comprehension of market state and trends using End-of-Day (EOD) data. Data is sourced via backend APIs, which in turn use Yahoo Finance (`yfinance`) exclusively for **daily (1D) EOD** historical technical data. This PRD focuses exclusively on the client-side/frontend components and interactions.
 
-## 2. Goals
+### 1.1 Problem Definition & Context
 
-*   Provide a highly scannable (< 30 seconds), visual overview of market health (Nifty 50, Nifty Next 50).
-*   Enable intuitive drill-down into specific indices and individual stocks through direct interaction with visualizations.
-*   Deliver a clean, minimalist, and responsive user experience across desktop and mobile devices using **Bootstrap**.
-*   Ensure rapid comprehension of stock/index performance through consistent color-coding (red/green) based on defined intensity mappings.
-*   Allow quick assessment of historical price trends via neutral-colored line charts.
+The Indian stock market sees increasing participation from retail investors who often face challenges in accessing clear, actionable information and tools to navigate market complexities efficiently using EOD data. This can lead to suboptimal investment decisions and increased anxiety, especially for newer participants. Many individuals juggle trading/investing with other commitments, highlighting the need for efficient and time-saving solutions for EOD analysis. Existing solutions may be too complex, text-heavy, or not focused on providing a quick visual pulse of the market, including sector-specific EOD trends, for long-term trend assessment.
 
-## 3. Feature Definition & Prioritization (Kano Model)
+### 1.2 Business Goals & Success Metrics
 
-| Feature ID | Feature Name    | Description    | Kano Category | Priority (MVP+) |
-| :---- | :---- | :---- | :---- | :---- |
-| FEAT-001   | Homepage Market Heatmap    | Visual grid of Nifty 50/Next 50 stocks, color-coded by daily % change. Tiles are interactive. **[Tile Sizing TBD]**    | Basic    | MVP    |
-| FEAT-002   | Stock Tile Tooltip (HTMX)    | On hover/tap-hold on heatmap tile, display Stock Name, Daily % Change, Daily Volume Change via HTMX.    | Performance   | MVP    |
-| FEAT-003   | Stock Detail Page View    | Dedicated page for a single stock showing basic info and price chart.    | Basic    | MVP    |
-| FEAT-004   | Stock Price Chart    | **Neutral color** line chart on Stock Detail Page showing price trend (1D minimum granularity). Focus on trend shape.    | Basic    | MVP (Line)    |
-| FEAT-005   | Chart Timeframe Selection    | Controls to select chart timeframe (e.g., 1D, 5D, 1M, 6M, 1Y, Max **[Max Definition TBD]**).    | Performance   | MVP (Controls), R2 (Functionality) |
-| FEAT-007   | Index Detail Page View    | Dedicated page for an index (Nifty 50/Next 50) showing focused heatmap of **Top 5 Gainers/Losers**, plus lists.    | Performance   | Release 2    |
-| FEAT-009   | Top Gainers/Losers Visuals    | Visual representation (e.g., lists) of **Top 5** movers on Index Detail Page.    | Performance   | Release 2    |
-| FEAT-010   | Responsive Design (**Bootstrap**) | Fluid layout adaptation across desktop and mobile viewports using **Bootstrap**.    | Basic    | MVP    |
-| FEAT-011   | Consistent Color Coding    | Strict use of red/green shades for negative/positive changes, intensity indicating magnitude per spec **[Scale TBD]**.    | Basic    | MVP    |
-| FEAT-012   | Minimalist Navigation    | Back arrows and/or breadcrumbs for navigating between pages.    | Basic    | MVP (Browser Back), R2 (Explicit) |
-| FEAT-014   | Overall Index Indicators (Home)  | Small visual gauges/bars on Homepage showing overall Nifty 50/Next 50 daily performance.    | Excitement    | Release 3    |
+* **Goal 1:** Achieve 100 registered users within the first 6 months post-launch.
+    * **Metric:** Number of registered users.
+* **Goal 2:** Attain an average session duration of 2.5 minutes within the first 3 months (increased due to sector views).
+    * **Metric:** Average session duration.
+* **Goal 3:** Gather qualitative feedback from at least 20 users within the first 2 months post-launch to inform iterative development.
+    * **Metric:** Number of user feedback submissions (e.g., survey responses, direct feedback).
+* **Goal 4 (User Adoption):** 50 users actively use the heatmap feature (overall and/or sector-specific) at least once a week within the first 3 months.
+    * **Metric:** Weekly active users of heatmap features.
+* **Goal 5 (Sector Feature Adoption):** At least 30% of active users engage with the sector selection feature within the first 3 months.
+    * **Metric:** Percentage of weekly active users using the sector view.
 
-*(Note: Sector-level views, News Integration, Key Stock Metrics, Dark Mode, and Candlestick charts are considered future roadmap items beyond these initial releases).*
+### 1.3 User Research & Insights
 
-## 4. Functional & Non-Functional Requirements
+While formal user research is planned for future iterations, initial assumptions are based on the understanding that Indian traders and investors, particularly those with a long-term perspective, need:
+* A quick and digestible overview of daily market performance (EOD).
+* The ability to understand EOD performance at a **sector level** to identify broader trends or isolated sector movements.
+* Tools for basic portfolio tracking and monitoring stocks of interest using EOD data (Note: portfolio tracking is out of MVP scope, watchlist is future).
+* Clear visualization of historical EOD trends to contextualize daily movements.
 
-### 4.1. Functional Requirements (Mapped to Features)
+*Target User Persona (Initial):*
+* **Name:** Priya Sharma
+* **Age:** 30-45
+* **Occupation:** Salaried Professional
+* **Investing Style:** Long-term investor, primarily in blue-chip stocks and index funds, with some interest in sector-specific ETFs or stocks.
+* **Needs:** Wants a quick way to check EOD market status, including which sectors are performing well or poorly, without sifting through complex charts or news. Interested in identifying major EOD movements in key indices and sectors.
+* **Pain Points:** Finds most financial platforms overwhelming. Doesn't have time for in-depth daily analysis but wants to stay informed about EOD trends at market and sector levels.
 
-**FEAT-001: Homepage Market Heatmap**
-*   **FR-1.1:** Display a grid representing stocks from Nifty 50.
-*   **FR-1.2:** Display a grid representing stocks from Nifty Next 50 (Post-MVP).
-*   **FR-1.3:** Each stock shall be represented by a rectangular tile.
-*   **FR-1.X:** **[Heatmap Tile Sizing TBD - Uniform or Weighted?]** - *Decision needed on whether all tiles are equal size or weighted (e.g., by market cap).*
-*   **FR-1.4:** Tile background color must be determined by the stock's **Daily Percentage Change** (fetched from API).
-    *   **Definition:** Daily Percentage Change = `((Current Day Close Price - Previous Day Close Price) / Previous Day Close Price) * 100%`. **[Data Timing TBD]**
-    *   Color mapping follows **FR-11.3**.
-*   **FR-1.5:** Clicking/tapping a stock tile must navigate the user to the corresponding Stock Detail Page (**FEAT-003**).
-*   **FR-1.6:** (Optional - **FEAT-014**) Clicking/tapping an overall index indicator must navigate to the Index Detail Page (**FEAT-007**).
+## 2. Goals (Product Specific)
 
-**FEAT-002: Stock Tile Tooltip (HTMX)**
-*   **FR-2.1:** On mouse hover over a stock tile (desktop), trigger an HTMX request/display.
-*   **FR-2.2:** On tap-and-hold on a stock tile (mobile), trigger an HTMX request/display.
-*   **FR-2.3:** The tooltip must display: Stock Name, **Daily Percentage Change**, **Daily Volume Change**.
-    *   **Definition:** Daily Volume Change = `((Current Day Volume - Previous Day Volume) / Previous Day Volume) * 100%`. **[Data Timing TBD]**
-*   **FR-2.4:** The tooltip must disappear when the hover/hold ends.
+* Provide a highly scannable (< 30 seconds for initial overview), visual overview of market health (Nifty 50) and **key market sector EOD performance**.
+* Enable intuitive drill-down into specific indices, **sectors**, and individual stocks through direct interaction with visualizations, based on **EOD data**.
+* Deliver a clean, minimalist, and responsive user experience across desktop and mobile devices using **Alpine.js and Bootstrap**.
+* Ensure rapid comprehension of stock/index/sector EOD performance through consistent color-coding (red/green) based on a defined **linear intensity mapping**.
+* Allow quick assessment of historical price trends via neutral-colored line charts displaying **EOD data since the stock's listing**.
+* Enable quick assessment of EOD performance across different market sectors.
 
-**FEAT-003: Stock Detail Page View**
-*   **FR-3.1:** Display the Stock Name/Symbol prominently.
-*   **FR-3.2:** Display basic current price information (e.g., Last Traded Price, Daily Change). **[Data Timing TBD]**
-*   **FR-3.3:** Include the Stock Price Chart (**FEAT-004**).
-*   **FR-3.4:** Include Chart Timeframe Selection controls (**FEAT-005**).
-*   **FR-3.5:** Provide navigation back to the previous page (**FEAT-012**).
+## 3. MVP Scope Definition
 
-**FEAT-004: Stock Price Chart**
-*   **FR-4.1:** Display a time-series chart representing the stock's price.
-*   **FR-4.2:** Initial chart type: **Line chart (MVP)**.
-*   **FR-4.3:** The line chart must use a **single, neutral color** (e.g., blue or theme color). *Rationale: Focuses user on trend shape, consistent with investor quick-scan goal. Red/green reserved for performance magnitude indicators.*
-*   **FR-4.4:** Chart must display data corresponding to the selected timeframe (**FEAT-005**), starting with 1D (MVP).
-*   **FR-4.5:** Chart axes must be clearly labeled (Time, Price).
-*   **FR-4.6:** Chart must use **1 Day or greater granularity** for data points. No intraday data will be displayed.
+### 3.1 Core Functionality (MVP)
 
-**FEAT-005: Chart Timeframe Selection**
-*   **FR-5.1:** Display interactive controls (e.g., buttons) labeled "1D", "5D", "1M", "6M", "1Y", "Max".
-*   **FR-5.2:** Clicking/tapping a timeframe control must update the Stock Price Chart (**FEAT-004**) to display data for the selected period.
-*   **FR-5.3:** The "1D" control must be active by default on page load (MVP). Other timeframes functional in Release 2.
-*   **FR-5.4:** **[Definition of "Max" Timeframe TBD]** - *Needs clarification (e.g., since listing, max from yfinance, etc.).*
+* **FEAT-001: Homepage Market/Index Heatmap (EOD Data)**
+    * **User Story:** As a long-term investor, I want to see a visual grid of Nifty 50 stocks (default view), color-coded by their daily EOD percentage change and sized by market capitalization, so that I can quickly assess the overall market sentiment and identify significant EOD movers.
+* **FEAT-015: Sector Selection & Heatmap View (EOD Data)**
+    * **User Story:** As a long-term investor, I want to select a market sector (e.g., Nifty Bank, Nifty IT) and view a heatmap of its constituent stocks based on their EOD performance and market cap, so that I can understand which sectors are driving market movements and identify EOD performing stocks within a specific sector.
+* **FEAT-002: Stock Tile Tooltip (HTMX for EOD Data)**
+    * **User Story:** As a user scanning a heatmap (market or sector), I want to hover/tap-hold on a stock tile to see its name, daily EOD percentage change, and daily EOD volume change, so that I can get quick details without navigating away.
+* **FEAT-003: Stock Detail Page View (EOD Data)**
+    * **User Story:** As a user interested in a specific stock (from market or sector heatmap), I want to click on its heatmap tile to view a dedicated page with its basic EOD price information and an EOD historical price chart, so that I can analyze its performance in more detail.
+* **FEAT-004: Stock Price Chart (EOD Historical Data)**
+    * **User Story:** As a user on the stock detail page, I want to see a neutral-colored line chart showing the stock's EOD price trend, so that I can understand its historical performance context.
+* **FEAT-005: Chart Timeframe Selection (EOD Data)**
+    * **User Story:** As a user analyzing a stock chart, I want to select different EOD timeframes (1D, 5D, 1M, 6M, 1Y, Max since listing), so that I can view its EOD price trend over various periods.
+* **FEAT-010: Responsive Design (Alpine.js & Bootstrap)**
+    * **User Story:** As a user, I want the dashboard to be easily viewable and usable on my desktop or mobile device, so that I can check market and sector EOD data conveniently.
+* **FEAT-011: Consistent Color Coding (EOD Data)**
+    * **User Story:** As a user, I want to instantly understand if an EOD stock movement (in any heatmap) is positive or negative and its relative magnitude through consistent red/green color coding with varying intensity, so that I can quickly interpret the visualizations.
+* **FEAT-012: Minimalist Navigation**
+    * **User Story:** As a user, I want to easily navigate back from a detail page to the main heatmap (market or sector view), so that I can continue exploring the market.
 
-**FEAT-007: Index Detail Page View (Release 2)**
-*   **FR-7.1:** Display the Index Name (e.g., "Nifty 50") prominently.
-*   **FR-7.2:** Display a focused heatmap containing the **Top 5 Gaining and Top 5 Losing** stocks within that index based on Daily Percentage Change. Heatmap follows **FR-1.3** and color mapping **FR-11.3**. Tiles link to **FEAT-003**. **[Tie-breaking Logic TBD]** - *How are ties handled?*
-*   **FR-7.3:** Include Top Gainers/Losers Visuals (**FEAT-009**).
-*   **FR-7.4:** Provide navigation back to the Homepage via **FEAT-012**.
+**Basic User Flow Diagram (MVP):**
 
-**FEAT-009: Top Gainers/Losers Visuals (Release 2)**
-*   **FR-9.1:** Display the **top 5** gaining stocks within the index visually (e.g., simple list). **[Tie-breaking Logic TBD]**
-*   **FR-9.2:** Display the **top 5** losing stocks within the index visually. **[Tie-breaking Logic TBD]**
-*   **FR-9.3:** Each item should show Stock Symbol and Daily % Change, using red/green color coding per **FR-11.1/FR-11.2**.
+```mermaid
+graph TD
+    A[User] --> B{View Homepage - Default Nifty 50 Heatmap - EOD};
+    B --> S[Select Sector?];
+    S -- Yes --> SV(Select Sector from List);
+    SV --> SH[Display Sector Heatmap - EOD];
+    SH -- Hover/Tap-hold Tile --> C[Display Stock Tooltip - EOD Data];
+    SH -- Click Tile --> D(View Stock Detail Page - EOD);
+    B -- No (Use Nifty 50 View) --> BH[Nifty 50 Heatmap Interaction];
+    BH -- Hover/Tap-hold Tile --> C;
+    BH -- Click Tile --> D;
+    D --> E{View EOD Stock Price Chart};
+    E --> F[Select Chart Timeframe - EOD];
+    F --> E;
+    D -- Browser Back/Back Button --> PV{Previous Heatmap View};
+    PV -- Was Sector View --> SH;
+    PV -- Was Nifty 50 View --> B;
+```
 
-**FEAT-010: Responsive Design (Bootstrap)**
-*   **FR-10.1:** All pages must render correctly and be usable on common screen widths (e.g., 360px+, 768px+, 1024px+) using **Bootstrap's grid system and responsive utilities**.
-*   **FR-10.2:** Layout elements (heatmaps, charts) must reflow or resize appropriately using Bootstrap classes.
-*   **FR-10.3:** Interactions (click/tap targets, tooltips) must function correctly on touch and non-touch devices.
-*   **FR-10.4:** Styling must be achieved primarily using **Bootstrap**. Custom CSS should be minimal and follow Bootstrap conventions where possible.
+### 3.2 Scope Boundaries
 
-**FEAT-011: Consistent Color Coding**
-*   **FR-11.1:** All representations of positive change (gain %) in heatmaps must use shades of green.
-*   **FR-11.2:** All representations of negative change (loss %) in heatmaps must use shades of red.
-*   **FR-11.3:** Color intensity **must** indicate the magnitude of change based on a defined scale. **[Exact Scale TBD - See D2]** - *This scale (specific % thresholds and corresponding hex/HSL codes) is critical and needs precise definition.* Example structure:
-    *   `> +X%`: Brightest Green (`#TBD`)
-    *   `+Y% to +X%`: Medium Green (`#TBD`)
-    *   `> 0% to +Y%`: Light Green (`#TBD`)
-    *   `0%`: Neutral Grey (`#TBD`)
-    *   `< 0% to -Y%`: Light Red (`#TBD`)
-    *   `-Y% to -X%`: Medium Red (`#TBD`)
-    *   `< -X%`: Brightest Red (`#TBD`)
-*   **FR-11.4:** Neutral states (0% change) should use a distinct neutral color (e.g., light grey). **[Exact Color TBD]**
+**OUT of Scope for MVP:**
+* Real-time data or intraday chart updates.
+* User accounts or authentication.
+* Portfolio tracking.
+* Watchlist functionality.
+* News integration.
+* Advanced charting features (e.g., technical indicators, candlestick charts beyond line charts).
+* Nifty Next 50 integration (Release 2).
+* Index Detail Pages showing Top Gainers/Losers (Release 2).
+* Overall Index Indicators on Homepage (Release 3).
+* Heatmap showing aggregated sector performance (MVP shows stocks *within* a sector, not sector-level aggregate tiles).
+
+### 3.3 MVP Validation Approach
+* **Method:** Soft launch to a small group of target users.
+* **Feedback:** Collect feedback via online surveys and short user interviews, specifically asking about the utility of sector views.
+* **Criteria for Moving Beyond MVP:**
+    * Positive qualitative feedback on ease of use for EOD data assessment (market and sector).
+    * Demonstrated understanding of heatmap and color-coding for EOD data.
+    * Successful completion of core user flows (including sector selection) by test users.
+* **Learning Goals:**
+    * Validate the utility of the EOD visual heatmap for quick market and sector assessment.
+    * Understand if the EOD historical chart meets basic analysis needs.
+    * Identify any major usability issues with the EOD data presentation and sector navigation.
+    * Gauge interest in more detailed sector analytics for future releases.
+
+## 4. Functional Requirements (Mapped to Features)
+
+Features are prefixed with "FEAT-". Functional Requirements are prefixed with "FR-".
+
+**FEAT-001: Homepage Market/Index Heatmap (EOD Data)**
+* **FR-1.1:** By default, display a grid representing stocks from Nifty 50 when the user first visits the page or selects an "Overall Market" view.
+* **FR-1.3:** Each stock shall be represented by a rectangular tile.
+* **FR-1.4:** Tile size must be weighted proportionally by the stock's Market Capitalization.
+* **FR-1.5:** Tile background color must be determined by the stock's **Daily Percentage Change (EOD)** (fetched from API).
+    * **Definition:** Daily Percentage Change = `((Current Day Close Price - Previous Day Close Price) / Previous Day Close Price) * 100%`. Data reflects **End-of-Day (EOD)** values.
+    * Color mapping follows **FR-11.3** using a linear gradient scale.
+* **FR-1.6:** Clicking/tapping a stock tile must navigate the user to the corresponding Stock Detail Page (**FEAT-003**).
+* **Acceptance Criteria:**
+    * Given a user navigates to the homepage, then a heatmap of Nifty 50 stocks is displayed by default.
+    * Given the Nifty 50 heatmap is displayed, then each tile's size visually corresponds to its market cap relative to other tiles in the Nifty 50.
+    * Given the Nifty 50 heatmap is displayed, then each tile's color reflects its EOD daily percentage change according to the defined red/green linear scale.
+    * When a user clicks a Nifty 50 stock tile, then they are navigated to that stock's detail page.
+
+**FEAT-015: Sector Selection & Heatmap View (EOD Data)**
+* **FR-15.1:** Display a mechanism for sector selection (e.g., a dropdown list, a series of buttons) prominently on the page, likely near the main heatmap area. The list of sectors will be provided by the backend (e.g., Nifty Bank, Nifty IT, Nifty Auto, Nifty FMCG, Nifty Pharma - specific list TBD by backend).
+* **FR-15.2:** The sector selection mechanism must include an option to view the "Overall Market" (i.e., Nifty 50, as per FEAT-001), which is the default view.
+* **FR-15.3:** Upon selecting a sector, the main heatmap area must update to display only the constituent stocks of that selected sector.
+* **FR-15.4:** Stocks within the sector-specific heatmap must adhere to the following display rules:
+    * Tiles sized by market capitalization. The weighting should be relative to other stocks *within that specific sector's heatmap display*.
+    * Tiles color-coded by EOD daily percentage change using the standard linear scale (**FR-11.3**).
+* **FR-15.5:** Each stock tile within the sector heatmap must provide tooltips on hover/tap-hold as per **FEAT-002**.
+* **FR-15.6:** Clicking/tapping a stock tile within the sector heatmap must navigate the user to the corresponding Stock Detail Page (**FEAT-003**).
+* **FR-15.7:** The currently selected view (e.g., "Nifty 50" or "Nifty IT") should be clearly indicated to the user (e.g., heading above heatmap, highlighted selector).
+* **Acceptance Criteria:**
+    * Given the user is on the homepage, then a list of selectable market sectors and an "Overall Market" (Nifty 50) option is visible and functional.
+    * When the user selects a specific sector (e.g., "Nifty IT"), then the heatmap updates to show only stocks belonging to "Nifty IT".
+    * Given a sector heatmap is displayed, then each tile's size visually corresponds to its market cap relative to other stocks currently displayed in that sector's heatmap.
+    * Given a sector heatmap is displayed, then each tile's color reflects its EOD daily percentage change according to the defined red/green linear scale.
+    * When a user clicks a stock tile within the sector heatmap, then they are navigated to that stock's detail page.
+    * The UI clearly indicates which view (Overall Market or specific sector) is currently active.
+
+**FEAT-002: Stock Tile Tooltip (HTMX for EOD Data)** (Applies to tiles in both Nifty 50 and Sector heatmaps)
+* **FR-2.1:** On mouse hover over a stock tile (desktop) in any active heatmap, trigger an HTMX request/display.
+* **FR-2.2:** On tap-and-hold on a stock tile (mobile) in any active heatmap, trigger an HTMX request/display.
+* **FR-2.3:** The tooltip must display: Stock Name, **Daily Percentage Change (EOD)**, **Daily Volume Change (EOD)**.
+    * **Definition:** Daily Volume Change = `((Current Day Volume - Previous Day Volume) / Previous Day Volume) * 100%`. Data reflects **EOD** values.
+* **FR-2.4:** The tooltip must disappear when the hover/hold ends.
+* **Acceptance Criteria:**
+    * Given a user hovers over any stock tile in an active heatmap, then a tooltip appears showing the stock name, EOD daily % change, and EOD daily volume change.
+    * Given the user moves the mouse off the tile or ends the tap-hold, then the tooltip disappears.
+
+**FEAT-003: Stock Detail Page View (EOD Data)** (Accessed from Nifty 50 or Sector heatmaps)
+* **FR-3.1:** Display the Stock Name/Symbol prominently.
+* **FR-3.2:** Display basic current EOD price information (e.g., Last Traded Price (EOD), Daily Change (EOD), Daily Volume (EOD)).
+* **FR-3.3:** Include the Stock Price Chart (**FEAT-004**).
+* **FR-3.4:** Include Chart Timeframe Selection controls (**FEAT-005**).
+* **FR-3.5:** Provide navigation back to the previous page (**FEAT-012**).
+* **Acceptance Criteria:**
+    * Given a user is on a stock detail page, then the stock's name/symbol and EOD price/volume information are displayed.
+    * Given a user is on a stock detail page, then an EOD price chart is visible.
+    * Given a user is on a stock detail page, then timeframe selection controls for the chart are present.
+
+**FEAT-004: Stock Price Chart (EOD Historical Data)**
+* **FR-4.1:** Display a time-series chart representing the stock's EOD price.
+* **FR-4.2:** Initial chart type: **Line chart (MVP)**.
+* **FR-4.3:** The line chart must use a **single, neutral color** (e.g., a theme blue, grey).
+* **FR-4.4:** Chart must display EOD data corresponding to the selected timeframe (**FEAT-005**), starting with "1D" (showing the single EOD closing price point, or a very short line if previous day data is available for comparison context) (MVP). The "Max" timeframe must display EOD data **since the stock's listing date**.
+* **FR-4.5:** Chart axes must be clearly labeled (Time, Price).
+* **FR-4.6:** Chart must use **1 Day (EOD) granularity** for data points. No intraday data will be displayed.
+* **Acceptance Criteria:**
+    * Given a stock detail page is loaded, then a neutral-colored line chart displays the stock's EOD price for the default "1D" timeframe.
+    * Given the "Max" timeframe is selected, then the chart updates to display EOD price data from the stock's listing date.
+    * Chart axes (Time and Price) are clearly visible and labeled.
+
+**FEAT-005: Chart Timeframe Selection (EOD Data)**
+* **FR-5.1:** Display interactive controls (e.g., buttons) labeled "1D", "5D", "1M", "6M", "1Y", "Max".
+* **FR-5.2:** Clicking/tapping a timeframe control must update the Stock Price Chart (**FEAT-004**) to display EOD data for the selected period.
+* **FR-5.3:** The "1D" control must be active by default on page load (MVP). All timeframe buttons are present; their full functionality (fetching and displaying data for 5D, 1M, 6M, 1Y, Max) is part of MVP.
+* **FR-5.4:** The "Max" timeframe must display EOD data **since the stock's listing date** as provided by the backend API.
+* **Acceptance Criteria:**
+    * Given the timeframe controls are visible, when a user clicks "1D", then the chart displays the EOD price for the relevant 1-day period.
+    * When a user clicks any timeframe button (5D, 1M, 6M, 1Y, Max), then the chart updates to show the corresponding EOD historical price data.
+    * The "Max" selection correctly displays data from the stock's listing date.
+
+**FEAT-010: Responsive Design (Alpine.js & Bootstrap)**
+* **FR-10.1:** All pages must render correctly and be usable on common screen widths (e.g., mobile: 360px+, tablet: 768px+, desktop: 1024px+) using **Bootstrap's grid system and responsive utilities, enhanced with Alpine.js for dynamic behaviors where necessary**.
+* **FR-10.2:** Layout elements (heatmaps, charts, sector selectors) must reflow or resize appropriately.
+* **FR-10.3:** Interactions (click/tap targets, tooltips, selectors) must function correctly on touch and non-touch devices.
+* **FR-10.4:** Styling must be achieved primarily using **Bootstrap**. Custom CSS should be minimal. **Alpine.js will manage client-side interactivity and state for components not handled by HTMX, such as the active sector view.**
+* **Acceptance Criteria:**
+    * Given a user views the application on a mobile device, then the layout adjusts for the smaller screen, all text is legible, and all features (including sector selection and heatmap interaction) are usable.
+    * Given a user views the application on a desktop, then the layout utilizes the larger screen space effectively.
+
+**FEAT-011: Consistent Color Coding (EOD Data)** (Applies to all heatmaps)
+* **FR-11.1:** All representations of positive EOD change (gain %) in heatmaps must use shades of green.
+* **FR-11.2:** All representations of negative EOD change (loss %) in heatmaps must use shades of red.
+* **FR-11.3:** Color intensity **must** indicate the magnitude of EOD change based on a **linear scale mapping percentage change to a color gradient**. (Definition of specific gradient endpoints and neutral color TBD - See Risk/Dependencies).
+* **FR-11.4:** Neutral states (0% EOD change) should use a distinct neutral color (e.g., light grey), which will be the midpoint of the linear gradient.
+* **Acceptance Criteria:**
+    * Given a stock has a positive EOD % change, then its representation (heatmap tile) is a shade of green.
+    * Given a stock has a negative EOD % change, then its representation is a shade of red.
+    * Given two stocks have different positive EOD % changes, then the stock with the larger change has a visibly more intense green color, as per the defined linear scale.
+    * A stock with 0% EOD change is displayed in the defined neutral color.
 
 **FEAT-012: Minimalist Navigation**
-*   **FR-12.1:** MVP: Rely on browser's back button for navigation. *(Note: Consider adding explicit back button even in MVP for better UX).*
-*   **FR-12.2:** Release 2+: Implement a clear "Back" arrow or breadcrumb trail (e.g., "Market Pulse > Nifty 50 > RELIANCE") on Detail pages.
+* **FR-12.1:** MVP: Implement a clear "Back" arrow/button on Stock Detail Pages (**FEAT-003**). Standard browser back button functionality should also be respected.
+* **Acceptance Criteria:**
+    * Given a user is on a stock detail page, then a "Back" button is visible and functional.
+    * When the user clicks the "Back" button, then they are navigated to the previously viewed heatmap (either Nifty 50 or the specific Sector heatmap they were on).
+    * Using the browser's back button from the stock detail page achieves the same result.
 
-**FEAT-014: Overall Index Indicators (Home) (Release 3)**
-*   **FR-14.1:** Display small, separate visual indicators (e.g., colored bars or simple gauges) near the top of the homepage.
-*   **FR-14.2:** One indicator for Nifty 50 overall daily % change, one for Nifty Next 50.
-*   **FR-14.3:** Indicators must use the standard red/green color coding (**FR-11.1, FR-11.2**).
+## 5. Non-Functional Requirements
 
-### 4.2. Non-Functional Requirements
+* **NFR-01: Performance:**
+    * The application should load key EOD market data for the default (Nifty 50) heatmap within 5 seconds on a standard internet connection.
+    * Switching to a sector heatmap and loading its EOD data should also be within 5 seconds.
+    * Chart loading for EOD data on the Stock Detail Page should be within 3 seconds after timeframe selection.
+* **NFR-02: Usability:**
+    * Interface should be intuitive, requiring minimal instruction for EOD data interpretation (market and sector views).
+    * Key EOD information should be scannable in under 30 seconds for an initial overview.
+    * Sector selection should be easily discoverable and usable.
+* **NFR-03: Compatibility:**
+    * Support latest stable versions of major desktop browsers: Chrome, Firefox, Safari, Edge.
+    * Support latest stable versions of major mobile browsers: Chrome (Android), Safari (iOS).
+* **NFR-04: Maintainability:**
+    * Code should be well-commented and modular.
+    * Use of Alpine.js and Bootstrap should follow best practices.
+    * Flask backend code should be organized and maintainable.
+* **NFR-05: Scalability (Frontend & Backend for MVP):**
+    * The frontend should efficiently handle the display of Nifty 50 stocks and typical sector sizes (e.g., up to 50 stocks per sector).
+    * Backend Flask application should handle concurrent requests from an initial small user base (e.g., up to 100 concurrent users for MVP).
+* **NFR-06: Security (Frontend & Backend for MVP):**
+    * No user-specific sensitive data is stored or handled by the frontend or backend in the MVP (anonymous access).
+    * All backend API calls for EOD data must use HTTPS.
+    * Basic input sanitization for any parameters passed to the backend (though none are expected from user input in MVP beyond predefined selections).
+* **NFR-07: Data Handling (EOD Data):**
+    * Display EOD data fetched from the backend API accurately.
+    * Provide clear visual indication (e.g., spinners, loading messages via Bootstrap/Alpine.js components) if EOD data is loading or unavailable.
+    * Display data source attribution (e.g., "Data sourced from Yahoo Finance") and disclaimers about EOD data (e.g., "Data is End-of-Day and for informational purposes only. Not financial advice.") prominently in the footer of all pages.
+    * EOD data is updated once per day after market close. The dashboard should reflect the latest available EOD data.
+* **NFR-08: Availability:**
+    * The application should aim for high availability during Indian market hours and general waking hours, supported by the chosen cloud provider's SLA. (Target 99.5% uptime for MVP).
 
-*   **NFR-01: Performance** (As before)
-*   **NFR-02: Usability** (As before, emphasizing scanability)
-*   **NFR-03: Compatibility** (As before)
-*   **NFR-04: Maintainability** (As before)
-*   **NFR-05: Scalability (Frontend)** (As before)
-*   **NFR-06: Security (Frontend)** (As before)
-*   **NFR-07: Data Handling**
-    *   Display data fetched from the backend API accurately.
-    *   Provide clear visual indication if data is loading or unavailable. **[Error Visuals TBD]** - *How are errors/loading states shown?*
-    *   Display data source attribution (**Yahoo Finance**) and any required disclaimers (e.g., delayed data, informational purposes only). **[Disclaimer Placement TBD]** - *Where exactly? Footer? About page?*
-    *   **[Specific Data Update Timing TBD]** - *When is "daily" data refreshed (e.g., EOD time)?*
+## 6. Epic & Story Structure (High-Level for MVP)
 
-## 5. User Workflows & Journeys (User Story Mapping - Examples)
+* **Epic 1: Core EOD Market Data Display & Navigation**
+    * **Goal:** Enable users to view the Nifty 50 heatmap, select sectors, view sector-specific heatmaps, and get quick stock info via tooltips.
+    * **Scope:** Covers FEAT-001 (Nifty 50 Heatmap), FEAT-015 (Sector Selection & Heatmap), FEAT-002 (Stock Tooltip), initial parts of FEAT-010 (Responsive Design for these views), FEAT-011 (Color Coding), and basic navigation structure.
+    * **Key Stories (Examples):**
+        * As an investor, I want to see the Nifty 50 stocks displayed as a heatmap by default so I can get an immediate market overview.
+        * As an investor, I want to select a specific sector (e.g., "Nifty Bank") from a list so I can view a heatmap of only bank stocks.
+        * As an investor, I want the active view (Nifty 50 or selected sector) to be clearly indicated.
+        * As an investor, I want stock tiles in heatmaps to be sized by market cap so I can understand their relative importance.
+        * As an investor, I want stock tiles to be color-coded by EOD % change so I can quickly see gainers and losers.
+        * As an investor, I want to hover over a stock tile to see its name, EOD % change, and EOD volume change.
+* **Epic 2: EOD Stock Detail View & Historical Charting**
+    * **Goal:** Allow users to drill down into individual stocks to view detailed EOD info and historical EOD price charts.
+    * **Scope:** Covers FEAT-003 (Stock Detail Page), FEAT-004 (Stock Price Chart), FEAT-005 (Chart Timeframe Selection), parts of FEAT-010 (Responsive Design for detail page), and FEAT-012 (Back Navigation).
+    * **Key Stories (Examples):**
+        * As an investor, when I click a stock tile, I want to navigate to a detail page for that stock.
+        * As an investor, on the stock detail page, I want to see its EOD price, EOD change, and EOD volume.
+        * As an investor, I want to see a line chart of the stock's EOD historical price, defaulting to "1D".
+        * As an investor, I want to select different timeframes (1D, 5D, 1M, 6M, 1Y, Max) for the stock chart.
+        * As an investor, I want a "Back" button on the stock detail page to return to my previous heatmap view.
+* **Epic 3: Foundational Setup & UI Shell**
+    * **Goal:** Establish the core technical infrastructure, project setup, and basic application shell.
+    * **Scope:** Flask backend setup, Alpine.js frontend structure, Bootstrap integration, HTMX setup, build/deployment pipeline (basic), footer with disclaimers, loading/error state visuals, general responsiveness framework. Covers parts of FEAT-010 and NFRs related to Data Handling (attribution, loading states).
+    * **Key Stories (Examples):**
+        * As a developer, I need a Flask backend capable of serving the frontend application and API endpoints for EOD data.
+        * As a developer, I need Alpine.js and Bootstrap integrated into the frontend for UI development.
+        * As a user, I want to see a loading indicator when data is being fetched.
+        * As a user, I want to see a clear error message if data cannot be loaded.
+        * As a user, I want to see data source attribution and disclaimers in the footer.
 
-These workflows illustrate how a user, particularly one with a long-term investment horizon seeking a rapid market overview, might interact with the Visual Market Pulse Dashboard based on the defined features (MVP and subsequent releases).
+## 7. Technical Guidance - Initial Architect Prompt
 
-Workflow 1: Quick Daily Market Health Check (MVP Focus)
-Persona Goal: Get a < 30-second feel for the overall market (Nifty 50) direction and identify any significant outliers for potential deeper investigation later.
-Steps:
-User navigates to the dashboard homepage.
-Instantly observes the Nifty 50 Market Heatmap (FEAT-001). The user primarily scans the overall color balance (predominance of red vs. green) and the intensity of colors (FR-11.3) to gauge market sentiment and volatility for the day.
-The user spots a few tiles with particularly bright red or green colors, indicating strong movers.
-They hover over (desktop) or tap-and-hold (mobile) one of these tiles (FEAT-002).
-A tooltip appears via HTMX, showing the Stock Name, Daily % Change, and Daily Volume Change (FR-2.3), confirming the magnitude of the move without leaving the heatmap view.
-The user repeats step 4-5 for another 1-2 outliers.
-(Release 3 Addition): User glances at the Overall Index Indicators (FEAT-014) for a summarized Nifty 50/Next 50 daily change.
-Outcome: The user has quickly assessed the day's market state for the Nifty 50 and noted key movers in under 30 seconds, fulfilling the core goal.
-Workflow 2: Investigating a Stock's Daily Move in Long-Term Context (MVP + R2 Timeframes)
-Persona Goal: Understand if a stock's significant daily movement (identified in Workflow 1) represents a blip or aligns with/deviates from its longer-term price trend.
-Steps:
-Following Workflow 1, the user identifies a stock (e.g., "Stock ABC") showing a significant daily change on the heatmap (FEAT-001).
-The user clicks/taps the "Stock ABC" tile (FR-1.5).
-They are navigated to the Stock Detail Page (FEAT-003).
-The user notes the basic price info (Last Price, Daily Change) (FR-3.2).
-They observe the Stock Price Chart (FEAT-004). Initially, it shows the "1D" view (FR-5.3), displayed as a neutral-colored line (FR-4.3). (Note: The utility of a 1D line chart is limited, but per PRD, it's the default. The value comes next).
-The user interacts with the Chart Timeframe Selection controls (FEAT-005), clicking "6M", "1Y", or "Max" (Functionality R2, Controls MVP - FR-5.2, FR-5.4).
-The neutral-colored line chart updates to show the selected longer-term historical price trend (FR-4.4).
-The user assesses the shape and direction of the long-term trend, comparing it mentally to the day's significant move to gain context.
-The user navigates back to the heatmap using the browser's back button (FEAT-012, FR-12.1) or an explicit back control (R2+).
-Outcome: The user has contextualized a specific stock's daily performance against its historical trend, aiding in filtering out short-term noise from a long-term perspective.
-Workflow 3: Reviewing Index Movers (Release 2 Focus)
-Persona Goal: Understand which specific stocks are the primary drivers behind an index's (e.g., Nifty 50) overall movement for the day.
-Steps:
-User navigates to the dashboard homepage.
-(Optional - Release 3): User clicks the overall Nifty 50 indicator (FEAT-014, FR-1.6) to go directly to the Index Detail Page.
-(Alternative Navigation TBD): User navigates to the Nifty 50 Index Detail Page (FEAT-007).
-The user views the focused heatmap showing only the Top 5 Gainers and Top 5 Losers for the index (FR-7.2). Color intensity highlights the magnitude.
-The user also scans the explicit Top Gainers/Losers lists (FEAT-009) which show symbols and % change (FR-9.3).
-The user identifies a stock of interest from these focused views (e.g., a Top Gainer).
-They click the stock's tile on the focused heatmap (FR-7.2) or potentially an item in the list.
-They are navigated to the Stock Detail Page (FEAT-003) for that specific stock.
-The user follows steps 5-9 from Workflow 2 to analyze the stock's long-term trend.
-The user navigates back (FEAT-012) to the Index Detail Page or Homepage.
-Outcome: The user has identified the key stocks influencing the index's performance for the day and investigated one further within its long-term context.
+For the initial MVP of the Visual Market Pulse Dashboard (EOD Data Viewer):
 
-## 6. Technical Feasibility & Architecture (Conceptual Frontend)
+* **Frontend:** **Alpine.js** for lightweight reactivity and component-based UI development, coupled with **Bootstrap 5** for responsive design and pre-styled components. **HTMX** will be used for dynamic tooltips from stock tiles.
+* **Backend:** **Flask (Python)** for API development and serving the Alpine.js frontend.
+* **Charting Library:** A lightweight JavaScript charting library compatible with Alpine.js (e.g., Chart.js, Plotly.js - specific library TBD, recommend Chart.js for simplicity if sufficient) for displaying EOD historical line charts.
+* **Data Source:** All market data will be EOD (End-of-Day), 1-day granularity, sourced exclusively from `yfinance` via the backend. No real-time data. The backend will be responsible for fetching, caching (if necessary), and processing this data.
+* **Hosting/Cloud Provider:** Preference for AWS or Google Cloud Platform for hosting the Flask backend. Frontend static assets can be served from the same instance or a CDN for better performance.
+* **Deployment:** Basic CI/CD pipeline for deploying the Flask application (e.g., using Git hooks to a PaaS, or simple script-based deployment).
+* **Local Development & Testing Requirements:**
+    * Developers must be able to run the complete system (Flask backend, Alpine.js frontend) locally.
+    * Consider a mechanism to use sample/mock EOD data for frontend development to decouple from live API calls during UI work.
+* **Key Considerations for Architect:**
+    * **API Design:** Design clear, efficient API endpoints for:
+        * Fetching Nifty 50 constituents with EOD data (price, % change, volume change, market cap).
+        * Fetching a list of supported market sectors.
+        * Fetching constituent stocks for a selected sector with their EOD data.
+        * Fetching detailed EOD data for a single stock.
+        * Fetching historical EOD price data for a single stock for specified timeframes (including "since listing").
+    * **Heatmap Logic:**
+        * Ensure the weighted heatmap layout logic (market cap based sizing) can be efficiently implemented and rendered with Alpine.js and Bootstrap. For sector views, market cap weighting should be relative to other stocks *within that sector's current display* to maintain visual differentiation.
+        * The linear color gradient scale for EOD % change needs to be defined and consistently applied.
+    * **State Management:** Plan for client-side state management with Alpine.js for the currently selected view (Nifty 50 vs. a specific sector), active chart timeframe, etc.
+    * **Data Fetching & Caching (Backend):** The Flask backend should handle interactions with `yfinance`. Consider caching strategies for `yfinance` data to improve performance and avoid hitting rate limits (e.g., daily EOD data can be cached once per day).
+    * **Error Handling:** Define how API errors will be communicated to the frontend for user display.
+    * **Modularity:** Structure Flask routes and Alpine.js components for maintainability.
 
-Stack Overview:
-The frontend will be built using Flask (Python) as the backend framework, HTMX for dynamic HTML interactions, Bootstrap for responsive UI components, and D3.js for advanced data visualizations.
+## 8. User Workflows & Journeys (Examples)
 
-Architecture:
+**Workflow 1: Quick Daily Market & Sector Health Check (MVP Focus)**
+* **Persona Goal:** Get a < 1-minute feel for the overall market (Nifty 50) and key sector EOD directions.
+* **Steps:**
+    1.  User navigates to the dashboard homepage.
+    2.  Instantly observes the default Nifty 50 Market Heatmap (FEAT-001). Scans overall color balance and intensity. Notes market cap weighted tile sizes.
+    3.  User spots the Sector Selection mechanism (FEAT-15.1).
+    4.  User selects "Nifty IT" from the sector list (FR-15.3).
+    5.  Heatmap updates to show only Nifty IT stocks, similarly color-coded and sized by market cap within the sector (FR-15.4). User scans this sector view.
+    6.  User may select another sector (e.g., "Nifty Bank") and observe its heatmap.
+    7.  User may switch back to "Overall Market" (Nifty 50) view.
+* **Outcome:** User has quickly assessed the day's EOD state for the Nifty 50 and one or two key sectors, identifying general trends.
 
-Flask serves as the lightweight backend, handling routing, API endpoints, and server-side rendering. It is well-suited for moderate traffic (20,000 hits/day) and can be easily scaled horizontally if needed.
-HTMX enables partial page updates and dynamic content loading without full page reloads, reducing bandwidth and improving user experience. It integrates seamlessly with Flask’s templating.
-Bootstrap provides a mobile-first, responsive design system, ensuring consistent UI/UX across devices with minimal custom CSS.
-D3.js is used for interactive, investor-grade data visualizations (e.g., charts, graphs, dashboards), embedded within Bootstrap components for a cohesive look.
+**Workflow 2: Investigating a Stock's EOD Move (from Market or Sector View) in Long-Term Context (MVP)**
+* **Persona Goal:** Understand if a stock's significant EOD movement (identified in Workflow 1) aligns with or deviates from its longer-term EOD price trend.
+* **Steps:**
+    1.  Following Workflow 1, user is viewing either the Nifty 50 heatmap or a specific Sector heatmap.
+    2.  User spots a tile with a particularly intense red or green color.
+    3.  User hovers over/tap-holds the tile to see the tooltip with EOD % change and volume change (FEAT-002).
+    4.  User clicks/taps the stock tile (FR-1.6 / FR-15.6).
+    5.  User is navigated to the Stock Detail Page (FEAT-003).
+    6.  User notes basic EOD price info (FR-3.2).
+    7.  User observes the Stock Price Chart (FEAT-004), initially showing "1D" EOD data.
+    8.  User interacts with Chart Timeframe Selection (FEAT-005), clicking "6M", "1Y", or "Max".
+    9.  The line chart updates to show the selected longer-term historical EOD price trend (FR-4.4).
+    10. User assesses the EOD trend shape and compares it to the day's move.
+    11. User clicks the "Back" button (FEAT-012) to return to the previous heatmap view (Nifty 50 or the specific sector).
+* **Outcome:** User has contextualized a specific stock's EOD performance against its historical EOD trend.
 
-Scalability & Performance:
+## 9. Release Strategy & Timeline (Conceptual MVP)
 
-Flask’s stateless nature allows for easy scaling via WSGI servers (e.g., Gunicorn) and load balancers.
-Caching (e.g., Flask-Caching, Redis) will be used for frequently accessed data and rendered templates.
-Static assets (JS, CSS, images) will be served via CDN for low latency.
-HTMX reduces server load by updating only necessary DOM fragments.
-D3.js visualizations are rendered client-side, offloading processing from the server.
+* **Release 1 (MVP): Visual Market & Sector Pulse (EOD)**
+    * **Focus:** Deliver the core visual market and sector scanning experience with EOD data.
+    * **Timeline:** Estimated 6-8 weeks (assuming 1-2 developers for backend/frontend).
+        * **Sprint 1-2 (Setup & Core Heatmap):** Flask backend setup, Alpine.js/Bootstrap frontend shell, Nifty 50 heatmap display (FEAT-001), basic color coding (FEAT-011), tooltips (FEAT-002).
+        * **Sprint 3-4 (Stock Detail & Charting):** Stock Detail Page (FEAT-003), basic 1D Line Chart (FEAT-004), Timeframe Selection (FEAT-005), Back Navigation (FEAT-012).
+        * **Sprint 5-6 (Sector Functionality & Responsive):** Sector Selection & Heatmap (FEAT-015), full responsiveness (FEAT-010), data loading/error states (NFR-07), footer.
+        * **Sprint 7 (Testing & Polish):** Bug fixing, performance tweaks, final UI polish, deployment prep.
+    * **Key Deliverables:** All features listed in section 3.1.
+    * **Management Demo Value:** Functional visual market scanner showing daily EOD stock movements for Nifty 50 and selectable sectors, with intuitive color coding, market cap weighting, tooltips, and drill-down to historical EOD stock charts. Demonstrates core product concept for EOD data visualization.
 
-Security & Maintainability:
-Follows Flask’s best practices for security (CSRF, XSS, input validation).
-Modular codebase: separation of concerns between backend logic, frontend templates, and visualization scripts.
-Bootstrap and HTMX minimize custom JS, reducing maintenance overhead.
+* **Future Releases (Post-MVP):**
+    * **Release 2: Enhanced Context & Index Views:** Nifty Next 50 integration, Index Detail Pages (Top 5 G/L), explicit breadcrumb navigation.
+    * **Release 3: Market Context & Polish:** Overall Index Indicators on Homepage, performance optimizations.
+    * **Further Roadmap:** Watchlist, basic portfolio features, more chart types, user accounts, etc.
 
+## 10. Risk Management & Assumptions (RAID Log - Initial)
 
-## 7. Acceptance Criteria (Gherkin Syntax - Examples)
+| Type       | ID | Description                                                                                                                               | Impact (H/M/L) | Likelihood (H/M/L) | Mitigation / Contingency                                                                                                       | Owner        |
+| :--------- | :- | :---------------------------------------------------------------------------------------------------------------------------------------- | :------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------- | :----------- |
+| Risk       | R1 | `yfinance` API instability, rate limiting, or changes in data structure.                                                                    | H              | M                  | Backend to implement robust error handling, retries, and potentially caching. Monitor `yfinance` updates. Have a plan to adapt. | BE Lead      |
+| Risk       | R2 | Performance issues with rendering large heatmaps (Nifty 50) or frequent switching between sector views with Alpine.js.                   | M              | M                  | Optimize rendering logic. Efficient data fetching for views. Performance testing throughout development.                     | FE Lead      |
+| Risk       | R3 | Difficulty in accurately sourcing and mapping stocks to relevant Indian market sectors if `yfinance` doesn't provide this directly.         | M              | M                  | Backend team to research reliable sector mapping. May need a maintained mapping table. Define sector list early.           | BE Lead / PM |
+| Risk       | R4 | Defining a linear color gradient scale (FR-11.3) that is intuitive and visually effective across various % changes might be challenging. | L              | M                  | UX/UI input needed. Iterate based on visual prototypes. Test with sample data.                                               | PM / UX      |
+| Assumption | A1 | Backend can reliably provide all required EOD data points (price, %change, volume, market cap, listing date, sector constituents) from `yfinance`. | H              | -                  | Ongoing communication with Backend team. Define clear API contracts & timing. Verify `yfinance` capabilities.                | PM / BE Lead |
+| Assumption | A2 | HTMX can be seamlessly integrated with Alpine.js and Flask for the tooltip functionality without performance degradation.                   | L              | -                  | Prototype HTMX interactions early.                                                                                             | FE Lead      |
+| Assumption | A3 | The chosen JavaScript charting library (e.g., Chart.js) will meet all requirements for line charts, timeframes, and responsiveness.     | M              | -                  | FE Lead to confirm library choice and capabilities early.                                                                      | FE Lead      |
+| Assumption | A4 | Market capitalization data for weighting tiles is consistently available and accurate via `yfinance` EOD.                                  | H              | -                  | Backend to verify and ensure this data point is robustly fetched.                                                              | BE Lead      |
+| Dependency | D1 | Finalized list of market sectors to be supported in MVP (backend to provide based on `yfinance` data).                                     | M              | -                  | Backend team to provide the list and API for sector data.                                                                      | BE Lead      |
+| Dependency | D2 | Finalized specific color gradient endpoints (% values for darkest red/green, neutral color hex code) for FR-11.3.                       | M              | -                  | UX/UI task. Define before extensive CSS work.                                                                                  | UX / PM      |
+| Dependency | D3 | Selection and approval of the specific High-Level JavaScript charting library.                                                             | M              | -                  | FE Lead to research, propose, and get approval.                                                                                | FE Lead / PM |
+| Dependency | D4 | Specific text and legal requirements for Disclaimer and Data Source Attribution in the footer (NFR-07).                                   | L              | -                  | PM to finalize text, possibly with legal review if applicable.                                                                 | PM           |
 
-### FEAT-001: Homepage Market Heatmap
-Feature: Homepage Market Heatmap
+## 11. Clarity & Communication - Glossary of Terms
 
-  Scenario: User views the homepage heatmap
-    Given the user navigates to the homepage
-    Then the user should see a grid of Nifty 50 stock tiles
-    And each tile background color reflects the stock's daily percentage change using the defined red/green intensity scale
+* **Alpine.js:** A rugged, minimal JavaScript framework for composing behavior directly in your markup.
+* **API:** Application Programming Interface.
+* **Bootstrap:** A popular CSS framework for developing responsive and mobile-first websites.
+* **BSE:** Bombay Stock Exchange.
+* **CDN:** Content Delivery Network.
+* **CI/CD:** Continuous Integration/Continuous Deployment.
+* **CSS:** Cascading Style Sheets.
+* **EOD Data (End-of-Day Data):** Market data that is finalized after the market closes for the day. For this project, it implies 1-day granularity.
+* **Flask:** A micro web framework written in Python.
+* **FR:** Functional Requirement.
+* **Heatmap:** A graphical representation of data where values are depicted by color.
+* **HTMX:** A library that allows you to access modern browser features directly from HTML, rather than using JavaScript for certain dynamic updates.
+* **HTTPS:** Hypertext Transfer Protocol Secure.
+* **JS:** JavaScript.
+* **KPI:** Key Performance Indicator.
+* **Market Capitalization (Market Cap):** The total market value of a company's outstanding shares of stock.
+* **MVP:** Minimum Viable Product.
+* **NFR:** Non-Functional Requirement.
+* **NSE:** National Stock Exchange of India.
+* **PaaS:** Platform as a Service.
+* **PM:** Product Manager.
+* **PRD:** Product Requirements Document.
+* **RAID Log:** Risk, Assumptions, Issues, Dependencies Log.
+* **Sector:** A group of stocks representing a specific segment of the economy (e.g., Nifty Bank, Nifty IT). The specific list of sectors for MVP will be defined by the backend based on available data (e.g., from Nifty sectoral indices).
+* **UI:** User Interface.
+* **UX:** User Experience.
+* **`yfinance`:** A Python library to fetch historical market data from Yahoo Finance.
 
-  Scenario: User clicks a stock tile
-    Given the user is on the homepage heatmap
-    When the user clicks a stock tile
-    Then the user is navigated to the Stock Detail Page for that stock
+## 12. Open Questions
 
-### FEAT-002: Stock Tile Tooltip (HTMX)
-Feature: Stock Tile Tooltip
+* What is the definitive list of market sectors to be included in the MVP sector selection? (Dependency D1 - BE Lead to confirm based on `yfinance` data).
+* What are the exact hex codes and percentage mapping for the linear color gradient for heatmaps? (Dependency D2 - UX/PM to define).
+* Which specific JavaScript charting library will be used? (Dependency D3 - FE Lead/PM to decide).
+* How should market cap weighting be precisely calculated and applied for tiles within a sector view (absolute vs. relative to sector)? (Architect/FE Lead to decide for visual clarity).
+* How will "1D" timeframe charts visually represent a single EOD data point? (UX/FE Lead to define - e.g. show point, or try to show a line to previous close if available).
 
-  Scenario: User hovers over a stock tile (desktop)
-    Given the user is on the homepage heatmap
-    When the user hovers over a stock tile
-    Then a tooltip appears showing Stock Name, Daily % Change, and Daily Volume Change
+## 13. Document History
 
-  Scenario: User tap-and-holds a stock tile (mobile)
-    Given the user is on the homepage heatmap on a mobile device
-    When the user tap-and-holds a stock tile
-    Then a tooltip appears showing Stock Name, Daily % Change, and Daily Volume Change
-
-### FEAT-003/004/005: Stock Detail Page & Chart
-Feature: Stock Detail Page and Chart
-
-  Scenario: User views a Stock Detail Page
-    Given the user navigates to a Stock Detail Page
-    Then the page displays the Stock Name, Symbol, and current price info
-    And a neutral-colored line chart of the stock price for the default "1D" timeframe
-
-  Scenario: User changes chart timeframe
-    Given the user is on a Stock Detail Page
-    When the user selects a different timeframe (e.g., "6M", "1Y")
-    Then the line chart updates to show the price trend for the selected period
-
-### FEAT-010: Responsive Design (Bootstrap)
-Feature: Responsive Layout
-
-  Scenario: User accesses the site on different devices
-    Given the user accesses the dashboard on desktop, tablet, or mobile
-    Then all pages and visualizations render correctly and remain usable
-
-### FEAT-011: Consistent Color Coding
-Feature: Color Coding
-
-  Scenario: Heatmap color reflects stock performance
-    Given the homepage heatmap is displayed
-    Then positive changes use green shades, negative changes use red shades, and intensity matches the magnitude per the defined scale
-
-### FEAT-012: Minimalist Navigation
-Feature: Navigation
-
-  Scenario: User navigates back from a detail page
-    Given the user is on a Stock or Index Detail Page
-    When the user uses the browser back button
-    Then the user returns to the previous page
-
-### FEAT-007/009: Index Detail Page & Top Movers (Release 2)
-Feature: Index Detail Page and Top Movers
-
-  Scenario: User views Index Detail Page
-    Given the user navigates to an Index Detail Page
-    Then the page displays a focused heatmap of the Top 5 Gainers and Top 5 Losers
-    And lists of Top 5 Gainers and Losers with correct color coding and % change
-
-### NFR-07: Data Handling & Error States
-Feature: Data Loading and Error Handling
-
-  Scenario: Data is loading
-    Given the user navigates to any page
-    When data is being fetched from the backend
-    Then a loading indicator is shown
-
-  Scenario: Data is unavailable or API error
-    Given the user navigates to any page
-    When the backend API returns an error or no data
-    Then a clear error message or visual is displayed
-
-### NFR: Data Source Attribution
-Feature: Data Source Attribution
-
-  Scenario: User views any page with market data
-    Given the user is on any page displaying market data
-    Then a visible attribution to Yahoo Finance is present
-
-## 8. Release Strategy & Timeline (Incremental Roadmap)
-
-### Focus: Deliver the core visual market scanning experience with minimal viable functionality
-
-Timeline: Weeks 1-6
-Key Deliverables:
-Homepage Market Heatmap (FEAT-001) with Nifty 50 stocks
-Basic Stock Tile Tooltip via HTMX (FEAT-002)
-Simple Stock Detail Page (FEAT-003) with 1D price chart
-Responsive Bootstrap implementation (FEAT-010)
-Consistent color coding system (FEAT-011)
-Browser back button navigation (FEAT-012)
-Management Demo Value: Functional visual market scanner showing daily stock movements with intuitive color coding and basic interactivity. Demonstrates core product concept and visual approach.
-Release 2: Enhanced Context & Analysis (4 weeks)
-
-### Focus: Add timeframe flexibility and index-level insights
-
-Timeline: Weeks 7-10
-Key Deliverables:
-Functional Chart Timeframe Selection (FEAT-005) - 5D, 1M, 6M, 1Y, Max
-Index Detail Pages (FEAT-007) for Nifty 50
-Top Gainers/Losers Visuals (FEAT-009)
-Explicit back navigation controls (FEAT-012 enhancement)
-Nifty Next 50 integration to Homepage Heatmap
-Management Demo Value: Demonstrates product evolution with historical context capabilities and focused views of market movers. Shows how users can now analyze trends beyond daily movements.
-Release 3: Market Context & Polish (4 weeks)
-
-### Focus: Add overall market context and UX refinements
-
-Timeline: Weeks 11-14
-Key Deliverables:
-Overall Index Indicators on Homepage (FEAT-014)
-Enhanced error handling and loading states
-Performance optimizations
-Data source attribution and disclaimers
-User feedback implementation from R1/R2
-Management Demo Value: Complete market scanning solution with clear index-level indicators and polished user experience. Demonstrates product maturity and readiness for broader adoption.
-Future Roadmap Considerations (Post-Release 3)
-Sector-level views and filtering
-News integration
-Additional technical indicators
-Dark mode support
-Candlestick chart options
-Mobile app consideration
-
-## 9. Risk Management & Assumptions (RAID Log)
-
-| Type    | ID | Description    | Impact (H/M/L) | Likelihood (H/M/L) | Mitigation / Contingency    | Owner    |
-| :---- | :- | :---- | :---- | :---- | :---- | :---- |
-| ... (Existing Risks R1-R5) ... |
-| Assumption | A1 | Backend can provide performant APIs for all required data points sourced **exclusively from `yfinance` at 1D+ granularity**. **[Data Timing TBD]** | H    | -    | Ongoing communication with Backend team. Define clear API contracts & timing. | PM / FE Lead   |
-| Assumption | A2 | The initial version will **exclusively use `yfinance`** via the backend API for all market data (1D+ granularity). Future iterations may explore alternative data sources. | M    | -    | Verify data characteristics. Include data delay disclaimers. **[Disclaimer Placement TBD]** | PM    |
-| Assumption | A3 | The visual language, particularly the red/green color intensity mapping (**FR-11.3**), relies on common market conventions. **[Scale TBD]** Usability testing crucial. | M    | -    | Define mapping clearly (**D2**). Validate through usability testing. | PM / UX    |
-| Assumption | A4 | HTMX provides sufficient interactivity for tooltips without conflicts or performance issues on target devices/browsers.    | L    | -    | Prototype HTMX interactions early. Test across devices.    | FE Lead    |
-| Assumption | A5 | **[Heatmap Tile Sizing TBD]** - Assumption is uniform sizing unless specified otherwise. | L | - | Decide on sizing approach (uniform vs. weighted). | PM / UX |
-| ... (Existing Issues I1) ... |
-| Dependency | D1 | Backend API availability for Release 1 features (1D+ `yfinance` data). **[Data Timing TBD]** | H    | -    | Tracked via project plan; dependent on Backend team progress.    | PM    |
-| Dependency | D2 | Finalized **specific color palette and intensity mapping scale** for red/green shades (**FR-11.3**). **[Scale TBD]** | H    | -    | UX/UI task, needed before extensive CSS implementation. Requires clear definition of ranges and corresponding hex codes/HSL values.    | UX / PM    |
-| Dependency | D3 | Selection and approval of the JavaScript charting library. **[Library TBD]** | M    | -    | FE Lead to research and propose, PM/Team to approve.    | FE Lead / PM   |
-| Dependency | D4 | Definition of "Max" timeframe for charts (**FR-5.4**). **[Definition TBD]** | L | - | Define based on data availability or product decision. | PM |
-| Dependency | D5 | Decision on Heatmap Tile Sizing (**FR-1.X**). **[Sizing TBD]** | L | - | Decide uniform vs. weighted. | PM / UX |
-| Dependency | D6 | Specification for Error/Loading Visuals (**NFR-07**). **[Error Visuals TBD]** | M | - | Define visual states. | UX / FE Lead |
-| Dependency | D7 | Specification for Disclaimer Placement (**NFR-07**). **[Placement TBD]** | L | - | Decide placement (e.g., footer). | PM / UX |
-| Dependency | D8 | Definition of Tie-Breaking Logic for Top G/L (**FR-7.2, FR-9.1, FR-9.2**). **[Logic TBD]** | L | - | Define how ties are handled. | PM / BE Lead |
-
-
+| Version | Date       | Author      | Changes                                                                                                |
+| :------ | :--------- | :---------- | :----------------------------------------------------------------------------------------------------- |
+| 1.3     | 2025-05-06 | AI Agent    | Initial draft based on project brief (Visual Market Pulse Dashboard).                                    |
+| 1.4     | 2025-05-08 | AI Agent    | Incorporated user feedback: Alpine.js/Flask, EOD data only, PRD deficiency fixes.                       |
+| 1.5     | 2025-05-08 | AI Agent    | Added Sector-level views to MVP scope. Updated relevant sections (Goals, Scope, FRs, Epics, Tech Guide). |
 
